@@ -8,10 +8,12 @@ libraryDependencies ++= {
   val akka = "com.typesafe.akka"
   val akkaV = "2.5.8"
   Seq(
-    akka %% "akka-actor"       % akkaV,
-    akka %% "akka-testkit"     % akkaV % Test,
-    akka %% "akka-cluster"     % akkaV,
-    akka %% "akka-persistence" % akkaV
+    akka             %% "akka-actor"       % akkaV,
+    akka             %% "akka-testkit"     % akkaV % Test,
+    akka             %% "akka-cluster"     % akkaV,
+    akka             %% "akka-persistence" % akkaV,
+    akka             %% "akka-slf4j"       % akkaV,
+    "ch.qos.logback" % "logback-classic"   % "1.2.3"
   )
 }
 
