@@ -2,6 +2,11 @@ package com.experiments.shopping.cart
 import java.util.UUID
 
 package object domain {
+  sealed trait ValidationError
+  case class ItemNotInCart(productId: ProductId) extends ValidationError
+  case class ItemAlreadyInCart(productId: ProductId) extends ValidationError
+  case class NegativeQuantity(productId: ProductId) extends ValidationError
+  case object EmptyCartCheckout extends ValidationError
 
   /**
     * Represents a shopping cart with items

@@ -3,12 +3,6 @@ package com.experiments.shopping.cart.domain
 import cats.data.ValidatedNel
 import cats.syntax.validated._
 
-sealed trait ValidationError
-case class ItemNotInCart(productId: ProductId) extends ValidationError
-case class ItemAlreadyInCart(productId: ProductId) extends ValidationError
-case class NegativeQuantity(productId: ProductId) extends ValidationError
-case object EmptyCartCheckout extends ValidationError
-
 /**
   * Also known as a Command Processor
   */
