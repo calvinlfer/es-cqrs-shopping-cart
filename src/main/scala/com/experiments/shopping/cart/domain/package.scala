@@ -31,11 +31,16 @@ package object domain {
 
   final case class Item(productId: ProductId, vendorId: VendorId, price: BigDecimal, quantity: Int)
 
+  type CartRepr = Map[ProductId, Item]
+  val EmptyCart: CartRepr = Map.empty
+
   /**
     * Represents items in a cart for a session
     * @param cartId id of the cart (used for correlation purposes by analytics)
     * @param items items in cart indexed by product id
     */
   case class CartState(cartId: CartId, items: CartRepr)
-  type CartRepr = Map[ProductId, Item]
+  object CartState {
+    def newCart(): CartState = CartState(CartId.generate(), items = EmptyCart)
+  }
 }

@@ -3,7 +3,7 @@ package com.experiments.shopping.cart.actors
 import java.time.ZonedDateTime
 
 import akka.actor.ActorLogging
-import akka.persistence.PersistentActor
+import akka.persistence.{ PersistentActor, SnapshotOffer }
 import cats.data.NonEmptyList
 import com.experiments.shopping.cart.actors.ShoppingCart._
 import com.experiments.shopping.cart.domain._
@@ -30,7 +30,7 @@ object ShoppingCart {
 }
 
 class ShoppingCart extends PersistentActor with ActorLogging with CartValidator with CartEventHandler {
-  var cartState = CartState(cartId = CartId.generate(), items = Map.empty)
+  var cartState = CartState(cartId = CartId.generate(), items = EmptyCart)
 
   def updateState(event: Event): Unit = event match {
     case ItemAdded(item, _, cartId) =>
@@ -59,7 +59,13 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
 
   def now(): ZonedDateTime = ZonedDateTime.now()
 
-  override def receiveRecover: Receive = ???
+  override def receiveRecover: Receive = {
+    case e: Event =>
+      updateState(e)
+
+    case SnapshotOffer(_, state: CartState) =>
+      cartState = state
+  }
 
   override def receiveCommand: Receive = {
     case AddItem(item) =>
@@ -81,8 +87,26 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
         }
       })
 
-    // TODO: continue with the rest of the Commands
-    // TODO: implement snapshotting which gives the cart a new ID to represent a new session
+    case AdjustQuantity(productId, deltaAmount) =>
+      adjustQuantity(productId, deltaAmount, cartState.items).fold(sendErrors, _ => {
+        val item = cartState.items(productId)
+        val event =
+          if (deltaAmount > 0) ItemQuantityIncreased(item, deltaAmount, cartState.cartId)
+          else ItemQuantityDecreased(item, deltaAmount, cartState.cartId)
+        persist(event) { event =>
+          updateState(event)
+          sender() ! event
+        }
+      })
+
+    case Checkout =>
+      checkout(cartState.items).fold(sendErrors, _ => {
+        persist(ItemsPurchased(cartState.items.values.toList, now(), cartState.cartId)) { event =>
+          updateState(event)
+          sender() ! event
+          saveSnapshot(CartState.newCart())
+        }
+      })
   }
 
   override def persistenceId: String = s"cart-${self.path.name}"

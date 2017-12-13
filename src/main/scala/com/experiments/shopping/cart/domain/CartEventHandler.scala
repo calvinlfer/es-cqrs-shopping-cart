@@ -13,5 +13,5 @@ trait CartEventHandler {
     existing + (productId -> newItem)
   }
 
-  def checkedOut: CartRepr = Map.empty
+  def checkedOut: CartRepr = EmptyCart
 }
