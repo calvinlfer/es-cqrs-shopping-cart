@@ -19,6 +19,15 @@ object ExampleREPL extends App {
   implicit val ec: ExecutionContext = system.dispatcher
 
   def commandLoop(): Future[Unit] = {
+    println("""
+              |Usage:
+              |add <item-name>
+              |remove <item-name>
+              |list
+              |adjust <item-name> <quantity>
+              |checkout
+              |exit
+            """.stripMargin)
     val input = scala.io.StdIn.readLine()
     val command = input.split(" ")
     if (command.isEmpty) {
