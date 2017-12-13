@@ -13,6 +13,7 @@ libraryDependencies ++= {
     akka             %% "akka-cluster"     % akkaV,
     akka             %% "akka-persistence" % akkaV,
     akka             %% "akka-slf4j"       % akkaV,
+    "org.typelevel"  %% "cats-core"        % "1.0.0-RC1",
     "ch.qos.logback" % "logback-classic"   % "1.2.3"
   )
 }
