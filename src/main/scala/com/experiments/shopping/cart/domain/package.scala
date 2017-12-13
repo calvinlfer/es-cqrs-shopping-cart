@@ -35,7 +35,7 @@ package object domain {
     def apply(id: UUID): VendorId = new VendorId(id)
   }
 
-  final case class Item(productId: ProductId, vendorId: VendorId, price: BigDecimal, quantity: Int)
+  final case class Item(productId: ProductId, vendorId: VendorId, name: String, price: BigDecimal, quantity: Int)
 
   type CartRepr = Map[ProductId, Item]
   val EmptyCart: CartRepr = Map.empty

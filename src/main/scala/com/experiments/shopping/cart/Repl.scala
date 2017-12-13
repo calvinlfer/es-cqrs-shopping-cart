@@ -2,23 +2,20 @@ package com.experiments.shopping.cart
 
 import java.util.UUID
 
-import akka.actor.{ ActorSystem, PoisonPill }
-import akka.util.Timeout
+import akka.actor.{ ActorRef, ActorSystem, PoisonPill }
 import akka.pattern.ask
-import com.experiments.shopping.cart.actors.ShoppingCart
+import akka.util.Timeout
 import com.experiments.shopping.cart.actors.ShoppingCart._
 import com.experiments.shopping.cart.domain.{ Item, ProductId, VendorId }
 
 import scala.concurrent.{ ExecutionContext, Future }
-import scala.concurrent.duration._
 
-object ExampleREPL extends App {
-  val system = ActorSystem("shopping-cart-command-system")
-  val exampleShoppingCart = system.actorOf(ShoppingCart.props, "example-cart")
-  implicit val timeout: Timeout = Timeout(5.seconds)
-  implicit val ec: ExecutionContext = system.dispatcher
+trait Repl {
+  val system: ActorSystem
+  implicit val timeout: Timeout
+  implicit val ec: ExecutionContext
 
-  def commandLoop(): Future[Unit] = {
+  def usage(): Unit =
     println("""
               |Usage:
               |add <item-name>
@@ -27,17 +24,21 @@ object ExampleREPL extends App {
               |adjust <item-name> <quantity>
               |checkout
               |exit
+              |help
             """.stripMargin)
+
+  def commandLoop(exampleShoppingCart: ActorRef): Future[Unit] = {
     val input = scala.io.StdIn.readLine()
     val command = input.split(" ")
     if (command.isEmpty) {
-      commandLoop()
+      commandLoop(exampleShoppingCart)
     } else {
       val result = command(0) match {
         case "add" =>
           val item = command.lift(1).getOrElse("apple")
           val uuidFromItem = UUID.nameUUIDFromBytes(item.getBytes())
-          (exampleShoppingCart ? AddItem(Item(ProductId(uuidFromItem), VendorId(uuidFromItem), 1.0, 1))).mapTo[Response]
+          (exampleShoppingCart ? AddItem(Item(ProductId(uuidFromItem), VendorId(uuidFromItem), item, 1.0, 1)))
+            .mapTo[Response]
 
         case "list" =>
           (exampleShoppingCart ? DisplayContents).mapTo[Response]
@@ -61,15 +62,18 @@ object ExampleREPL extends App {
           system.terminate()
           sys.exit(-1)
 
+        case "help" =>
+          usage()
+          Future.successful("---")
+
         case _ =>
           (exampleShoppingCart ? DisplayContents).mapTo[Response]
       }
 
       result.flatMap { response =>
         println(response)
-        commandLoop()
+        commandLoop(exampleShoppingCart)
       }
     }
   }
-  commandLoop()
 }

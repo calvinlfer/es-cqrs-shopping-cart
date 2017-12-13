@@ -20,7 +20,7 @@ trait CartValidator {
       case None =>
         ItemNotInCart(productId).invalidNel
 
-      case Some(Item(_, _, _, quantity)) if quantity + delta > 0 =>
+      case Some(Item(_, _, _, _, quantity)) if quantity + delta > 0 =>
         ().validNel
 
       case _ =>
