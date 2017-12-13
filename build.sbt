@@ -10,7 +10,7 @@ libraryDependencies ++= {
   Seq(
     akka                  %% "akka-actor"                 % akkaV,
     akka                  %% "akka-testkit"               % akkaV % Test,
-    akka                  %% "akka-cluster"               % akkaV,
+    akka                  %% "akka-cluster-sharding"      % akkaV,
     akka                  %% "akka-persistence"           % akkaV,
     akka                  %% "akka-slf4j"                 % akkaV,
     akka                  %% "akka-persistence-cassandra" % "0.80-RC2",

@@ -35,6 +35,13 @@ package object domain {
     def apply(id: UUID): VendorId = new VendorId(id)
   }
 
+  final class MemberId(val id: UUID) extends AnyVal {
+    override def toString: String = s"MemberId($id)"
+  }
+  object MemberId {
+    def apply(id: UUID): MemberId = new MemberId(id)
+  }
+
   final case class Item(productId: ProductId, vendorId: VendorId, name: String, price: BigDecimal, quantity: Int)
 
   type CartRepr = Map[ProductId, Item]
