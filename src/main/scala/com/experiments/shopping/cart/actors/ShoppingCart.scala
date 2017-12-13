@@ -2,7 +2,8 @@ package com.experiments.shopping.cart.actors
 
 import java.time.ZonedDateTime
 
-import akka.actor.ActorLogging
+import akka.actor.{ ActorLogging, Props }
+import akka.event.LoggingReceive
 import akka.persistence.{ PersistentActor, SnapshotOffer }
 import cats.data.NonEmptyList
 import com.experiments.shopping.cart.actors.ShoppingCart._
@@ -19,7 +20,7 @@ object ShoppingCart {
 
   sealed trait Response
   case class ValidationErrors(errors: Seq[ValidationError]) extends Response
-  case class CartContents(items: List[Item]) extends Response
+  case class CartContents(items: List[Item], cartId: CartId) extends Response
 
   sealed trait Event
   final case class ItemAdded(item: Item, timeAdded: ZonedDateTime, cartId: CartId) extends Event with Response
@@ -29,6 +30,8 @@ object ShoppingCart {
   final case class ItemsPurchased(items: List[Item], timePurchased: ZonedDateTime, cartId: CartId)
       extends Event
       with Response
+
+  def props: Props = Props(new ShoppingCart)
 }
 
 class ShoppingCart extends PersistentActor with ActorLogging with CartValidator with CartEventHandler {
@@ -69,7 +72,7 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
       cartState = state
   }
 
-  override def receiveCommand: Receive = {
+  override def receiveCommand: Receive = LoggingReceive {
     case AddItem(item) =>
       addItem(item, cartState.items).fold(
         sendErrors,
@@ -94,7 +97,7 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
         val item = cartState.items(productId)
         val event =
           if (deltaAmount > 0) ItemQuantityIncreased(item, deltaAmount, cartState.cartId)
-          else ItemQuantityDecreased(item, deltaAmount, cartState.cartId)
+          else ItemQuantityDecreased(item, math.abs(deltaAmount), cartState.cartId)
         persist(event) { event =>
           updateState(event)
           sender() ! event
@@ -111,7 +114,7 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
       })
 
     case DisplayContents =>
-      sender() ! CartContents(cartState.items.values.toList)
+      sender() ! CartContents(cartState.items.values.toList, cartState.cartId)
   }
 
   override def persistenceId: String = s"cart-${self.path.name}"

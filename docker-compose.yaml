@@ -1,0 +1,22 @@
+version: '3.1'
+
+# Describes the dependencies needed for the service to function
+services:
+  zookeeper:
+    image: zookeeper:3.4
+    ports:
+      - "2181:2181"   # Client
+      - "2888:2888"   # Follower
+      - "3888:3888"   # Election
+    networks:
+      - accounts
+  cassandra:
+    image: cassandra:3.11.1
+    ports:
+      - "9042:9042"   # Native transport
+      - "7199:7199"   # JMX
+      - "9160:9160"   # Thrift clients
+    networks:
+      - accounts
+networks:
+  accounts:

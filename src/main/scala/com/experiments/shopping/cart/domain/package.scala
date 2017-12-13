@@ -13,18 +13,24 @@ package object domain {
     * The cart ID is used to find out what items were purchased together
     * @param id UUID
     */
-  final class CartId(val id: UUID) extends AnyVal
+  final class CartId(val id: UUID) extends AnyVal {
+    override def toString: String = s"CartId($id)"
+  }
   object CartId {
     def apply(id: UUID): CartId = new CartId(id)
     def generate(): CartId = CartId(UUID.randomUUID())
   }
 
-  final class ProductId(val id: UUID) extends AnyVal
+  final class ProductId(val id: UUID) extends AnyVal {
+    override def toString: String = s"ProductId($id)"
+  }
   object ProductId {
     def apply(id: UUID): ProductId = new ProductId(id)
   }
 
-  final class VendorId(val id: UUID) extends AnyVal
+  final class VendorId(val id: UUID) extends AnyVal {
+    override def toString: String = s"VendorId($id)"
+  }
   object VendorId {
     def apply(id: UUID): VendorId = new VendorId(id)
   }
