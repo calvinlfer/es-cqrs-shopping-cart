@@ -14,10 +14,12 @@ object ShoppingCart {
   final case class AddItem(item: Item) extends Command
   final case class RemoveItem(productId: ProductId) extends Command
   final case class AdjustQuantity(productId: ProductId, delta: Int) extends Command
+  final case object DisplayContents extends Command
   final case object Checkout extends Command
 
   sealed trait Response
   case class ValidationErrors(errors: Seq[ValidationError]) extends Response
+  case class CartContents(items: List[Item]) extends Response
 
   sealed trait Event
   final case class ItemAdded(item: Item, timeAdded: ZonedDateTime, cartId: CartId) extends Event with Response
@@ -107,6 +109,9 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
           saveSnapshot(CartState.newCart())
         }
       })
+
+    case DisplayContents =>
+      sender() ! CartContents(cartState.items.values.toList)
   }
 
   override def persistenceId: String = s"cart-${self.path.name}"
