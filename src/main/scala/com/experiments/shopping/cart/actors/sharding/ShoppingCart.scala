@@ -6,8 +6,6 @@ import akka.cluster.sharding.ShardRegion
 import com.experiments.shopping.cart.actors.ShoppingCart.Command
 import com.experiments.shopping.cart.domain._
 
-import scala.util.hashing.MurmurHash3
-
 object ShoppingCart {
   case class CartEnvelope(memberId: MemberId, command: Command)
 
