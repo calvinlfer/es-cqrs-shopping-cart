@@ -9,7 +9,7 @@ services:
       - "2888:2888"   # Follower
       - "3888:3888"   # Election
     networks:
-      - accounts
+      - shopping_cart
   cassandra:
     image: cassandra:3.11.1
     ports:
@@ -17,6 +17,6 @@ services:
       - "7199:7199"   # JMX
       - "9160:9160"   # Thrift clients
     networks:
-      - accounts
+      - shopping_cart
 networks:
-  accounts:
+  shopping_cart:
