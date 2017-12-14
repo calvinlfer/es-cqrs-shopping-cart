@@ -9,3 +9,4 @@ appender(name="CONSOLE", clazz=ConsoleAppender) {
 }
 
 root(level=INFO, appenderNames=["CONSOLE"])
+logger(name="com.experiments.shopping.cart", level=DEBUG)

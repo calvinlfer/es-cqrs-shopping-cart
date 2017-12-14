@@ -2,10 +2,12 @@ package com.experiments.shopping.cart.actors
 
 import java.time.ZonedDateTime
 
-import akka.actor.{ ActorLogging, Props }
+import akka.actor.{ ActorLogging, Props, ReceiveTimeout }
+import akka.cluster.sharding.ShardRegion.Passivate
 import akka.event.LoggingReceive
 import akka.persistence.{ PersistentActor, SnapshotOffer }
 import cats.data.NonEmptyList
+import com.experiments.shopping.cart.Settings
 import com.experiments.shopping.cart.actors.ShoppingCart._
 import com.experiments.shopping.cart.domain._
 
@@ -17,6 +19,7 @@ object ShoppingCart {
   final case class AdjustQuantity(productId: ProductId, delta: Int) extends Command
   final case object DisplayContents extends Command
   final case object Checkout extends Command
+  private final case object Shutdown extends Command
 
   sealed trait Response
   case class ValidationErrors(errors: Seq[ValidationError]) extends Response
@@ -35,7 +38,12 @@ object ShoppingCart {
 }
 
 class ShoppingCart extends PersistentActor with ActorLogging with CartValidator with CartEventHandler {
+  val settings = Settings(context.system).cart
   var cartState = CartState(cartId = CartId.generate(), items = EmptyCart)
+
+  context.setReceiveTimeout(settings.inactivityDuration)
+
+  def passivate(): Unit = context.parent ! Passivate(stopMessage = Shutdown)
 
   def updateState(event: Event): Unit = event match {
     case ItemAdded(item, _, cartId) =>
@@ -63,6 +71,8 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
     sender() ! ValidationErrors(errors.toList)
 
   def now(): ZonedDateTime = ZonedDateTime.now()
+
+  override def persistenceId: String = s"cart-${self.path.name}"
 
   override def receiveRecover: Receive = {
     case e: Event =>
@@ -115,7 +125,12 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
 
     case DisplayContents =>
       sender() ! CartContents(cartState.items.values.toList, cartState.cartId)
-  }
 
-  override def persistenceId: String = s"cart-${self.path.name}"
+    case ReceiveTimeout =>
+      log.debug("Passivating {}", persistenceId)
+      passivate()
+
+    case Shutdown =>
+      context.stop(self)
+  }
 }
