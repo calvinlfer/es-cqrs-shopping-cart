@@ -17,8 +17,8 @@ object ShoppingCart {
     case CartEnvelope(memberId, command) => (memberId.toString, command)
   }
 
-  private def hash(id: UUID): Int = Math.abs(MurmurHash3.stringHash(id.toString))
-  private def hash(id: String): Int = Math.abs(MurmurHash3.stringHash(id))
+  private def hash(id: UUID): Int = Math.abs(id.hashCode())
+  private def hash(id: String): Int = Math.abs(id.hashCode())
 
   def extractShardId(numberOfShards: Int): ShardRegion.ExtractShardId = {
     case CartEnvelope(memberId, _) ⇒ (hash(memberId.id) % numberOfShards).toString
