@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package data.model.command.internal;
+
+import "events.proto";
+
+message CartState {
+    data.model.Id cartId = 1;
+    // limitation of proto3, Map keys can only be strings or integrals
+    // should be map<data.model.Id, data.model.Item>
+    map<string, data.model.Item> items = 2;
+}

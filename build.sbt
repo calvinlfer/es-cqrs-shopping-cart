@@ -14,12 +14,7 @@ val akkaV = "2.5.8"
 // query-processor sides and also contains reusable code
 lazy val `common` =
   (project in file("common"))
-    .settings(
-      libraryDependencies ++= Seq(
-        akka  %% "akka-actor"   % akkaV,
-        akka  %% "akka-cluster" % akkaV,
-      )
-    )
+    .settings(libraryDependencies ++= Seq(akka %% "akka-actor" % akkaV, akka %% "akka-cluster" % akkaV))
 
 lazy val `shopping-cart-command` =
   (project in file("shopping-cart-command"))
