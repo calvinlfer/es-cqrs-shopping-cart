@@ -7,17 +7,25 @@ scalaVersion in ThisBuild := "2.12.4"
 
 lazy val `shopping-cart` = (project in file(".")).aggregate(`common`, `shopping-cart-command`)
 
+val akka = "com.typesafe.akka"
+val akkaV = "2.5.8"
+
 // The common project contains the protocol buffers responsible for communication between the command and
-// query-processor sides.
-lazy val `common` = project in file("common")
+// query-processor sides and also contains reusable code
+lazy val `common` =
+  (project in file("common"))
+    .settings(
+      libraryDependencies ++= Seq(
+        akka  %% "akka-actor"   % akkaV,
+        akka  %% "akka-cluster" % akkaV,
+      )
+    )
 
 lazy val `shopping-cart-command` =
   (project in file("shopping-cart-command"))
     .dependsOn(`common`)
     .settings(
       libraryDependencies ++= {
-        val akka = "com.typesafe.akka"
-        val akkaV = "2.5.8"
         Seq(
           akka                       %% "akka-actor"                        % akkaV,
           akka                       %% "akka-testkit"                      % akkaV % Test,
