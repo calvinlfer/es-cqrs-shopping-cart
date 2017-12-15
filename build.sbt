@@ -8,11 +8,8 @@ scalaVersion in ThisBuild := "2.12.4"
 lazy val `shopping-cart` = (project in file(".")).aggregate(`common`, `shopping-cart-command`)
 
 // The common project contains the protocol buffers responsible for communication between the command and
-// query-processor sides. It is responsible for creating the generated files and making it available to
-// any project that depends on common, if a project needs to compile proto files, then add ScalaPB to it
-lazy val `common` =
-  (project in file("common"))
-    .settings(PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value))
+// query-processor sides.
+lazy val `common` = project in file("common")
 
 lazy val `shopping-cart-command` =
   (project in file("shopping-cart-command"))
@@ -35,7 +32,11 @@ lazy val `shopping-cart-command` =
           "org.codehaus.groovy"      % "groovy"                             % "2.4.13"
         )
       },
-      scalafmtOnCompile in ThisBuild := true
+      scalafmtOnCompile in ThisBuild := true,
+      // The depending project imports proto files and generates the source code
+      PB.includePaths in Compile += file("common/src/main/protobuf"),
+      PB.protoSources in Compile += file("common/src/main/protobuf"),
+      PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value)
     )
 
 // Won't work properly until SBT 1.1.1, use IntelliJ until then
