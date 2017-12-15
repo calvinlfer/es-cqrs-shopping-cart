@@ -28,8 +28,12 @@ object ShoppingCart {
   sealed trait Event
   final case class ItemAdded(item: Item, timeAdded: ZonedDateTime, cartId: CartId) extends Event with Response
   final case class ItemRemoved(item: Item, timeRemoved: ZonedDateTime, cartId: CartId) extends Event with Response
-  final case class ItemQuantityIncreased(item: Item, delta: Int, cartId: CartId) extends Event with Response
-  final case class ItemQuantityDecreased(item: Item, delta: Int, cartId: CartId) extends Event with Response
+  final case class ItemQuantityIncreased(item: Item, amount: Int, time: ZonedDateTime, cartId: CartId)
+      extends Event
+      with Response
+  final case class ItemQuantityDecreased(item: Item, amount: Int, time: ZonedDateTime, cartId: CartId)
+      extends Event
+      with Response
   final case class ItemsPurchased(items: List[Item], timePurchased: ZonedDateTime, cartId: CartId)
       extends Event
       with Response
@@ -54,12 +58,12 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
       val newItems = itemRemoved(item.productId, cartState.items)
       cartState = CartState(cartId, newItems)
 
-    case ItemQuantityIncreased(item, delta, cartId) =>
-      val newItems = quantityAdjusted(item.productId, delta, cartState.items)
+    case ItemQuantityIncreased(item, amount, _, cartId) =>
+      val newItems = quantityAdjusted(item.productId, amount, cartState.items)
       cartState = CartState(cartId, newItems)
 
-    case ItemQuantityDecreased(item, delta, cartId) =>
-      val newItems = quantityAdjusted(item.productId, -delta, cartState.items)
+    case ItemQuantityDecreased(item, amount, _, cartId) =>
+      val newItems = quantityAdjusted(item.productId, -amount, cartState.items)
       cartState = CartState(cartId, newItems)
 
     case ItemsPurchased(_, _, _) =>
@@ -106,8 +110,8 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
       adjustQuantity(productId, deltaAmount, cartState.items).fold(sendErrors, _ => {
         val item = cartState.items(productId)
         val event =
-          if (deltaAmount > 0) ItemQuantityIncreased(item, deltaAmount, cartState.cartId)
-          else ItemQuantityDecreased(item, math.abs(deltaAmount), cartState.cartId)
+          if (deltaAmount > 0) ItemQuantityIncreased(item, deltaAmount, now(), cartState.cartId)
+          else ItemQuantityDecreased(item, math.abs(deltaAmount), now(), cartState.cartId)
         persist(event) { event =>
           updateState(event)
           sender() ! event

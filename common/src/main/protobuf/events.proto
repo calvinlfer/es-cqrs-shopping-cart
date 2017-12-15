@@ -2,7 +2,46 @@ syntax = "proto3";
 
 package data.model;
 
-// TODO: fill out with actual fields and complete the rest of the events that are being persisted
+message Id {
+    bytes value = 1;
+}
+
+message Item {
+    Id productId = 1;
+    Id vendorId = 2;
+    string name = 3;
+    double price = 4;
+    int32 quantity = 5;
+}
+
 message ItemAdded {
-    double lol = 1;
+    Item item = 1;
+    string timeAdded = 2;   // ZonedDateTime
+    Id cartId = 3;
+}
+
+message ItemRemoved {
+    Item item = 1;
+    string timeRemoved = 2;   // ZonedDateTime
+    Id cartId = 3;
+}
+
+message ItemQuantityIncreased {
+    Item item = 1;
+    int32 amount = 2;
+    string time = 3;   // ZonedDateTime
+    Id cartId = 4;
+}
+
+message ItemQuantityDecreased {
+    Item item = 1;
+    int32 amount = 2;
+    string time = 3;   // ZonedDateTime
+    Id cartId = 4;
+}
+
+message ItemsPurchased {
+    Id cartId = 1;
+    string timePurchased = 2; // ZonedDateTime
+    repeated Item items = 3;
 }
