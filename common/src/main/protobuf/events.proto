@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package data.model;
+
+// TODO: fill out with actual fields and complete the rest of the events that are being persisted
+message ItemAdded {
+    double lol = 1;
+}
