@@ -11,10 +11,14 @@ val akka = "com.typesafe.akka"
 val akkaV = "2.5.8"
 
 // The common project contains the protocol buffers responsible for communication between the command and
-// query-processor sides and also contains reusable code
+// query-processor sides and also contains reusable code, it also generates the source for its protos
 lazy val `common` =
   (project in file("common"))
-    .settings(libraryDependencies ++= Seq(akka %% "akka-actor" % akkaV, akka %% "akka-cluster" % akkaV))
+    .settings(
+      libraryDependencies ++= Seq(akka %% "akka-actor" % akkaV, akka %% "akka-cluster" % akkaV),
+      scalafmtOnCompile in ThisBuild := true,
+      PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value)
+    )
 
 lazy val `shopping-cart-command` =
   (project in file("shopping-cart-command"))
@@ -36,9 +40,8 @@ lazy val `shopping-cart-command` =
         )
       },
       scalafmtOnCompile in ThisBuild := true,
-      // The depending project imports proto files and generates the source code
+      // Import proto files of the depending project since the command protos reference the depending protos
       PB.includePaths in Compile += file("common/src/main/protobuf"),
-      PB.protoSources in Compile += file("common/src/main/protobuf"),
       PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value)
     )
 
