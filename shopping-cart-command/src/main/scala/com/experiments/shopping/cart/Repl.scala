@@ -34,6 +34,8 @@ trait Repl {
   def showItem(item: Item): String =
     s"""
       |Name: ${item.name}
+      |ProductId: ${item.productId}
+      |VendorId: ${item.vendorId}
       |Price: ${item.price}
       |Quantity: ${item.quantity}
     """.stripMargin
