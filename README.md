@@ -4,8 +4,14 @@ A application that uses Event Sourcing (ES) and Command Query Responsibility seg
 The command side is designed to provide shopping cart functionality to members and the different query sides are designed to provide analytics on member's shopping carts.
 
 ## Running the application ##
-- Start up dependencies (Cassandra and ZooKeeper)
-```bash
-docker-compose up
-```
+- Start up dependencies (Cassandra and ZooKeeper) with Docker Compose using `docker-compose up`
+
 - Start application
+  - Command nodes require the following environment variables to be specified 
+    - `HOST_IP`: IP of the host machine (e.g. 192.168.1.144 or 127.0.0.1)
+    - `HOST_PORT`: Remoting port (e.g. 2552)
+    - `MANAGEMENT_PORT`: HTTP port that exposes cluster management (e.g. 19999)
+
+  - Query node requires the following environment variables to be specified
+    - `HOST_IP`: IP of the host machine (e.g. 192.168.1.144 or 127.0.0.1)
+    - `HOST_PORT`: Remoting port (e.g. 2552)
