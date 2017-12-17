@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 object Main extends App with Repl {
-  val system = ActorSystem("shopping-cart-command-system")
+  val system = ActorSystem("shopping-cart-system")
   val settings = Settings(system)
 
   val shoppingCartShard = ClusterSharding(system).start(

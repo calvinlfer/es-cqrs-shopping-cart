@@ -8,5 +8,7 @@ appender(name="CONSOLE", clazz=ConsoleAppender) {
     }
 }
 
-root(level=INFO, appenderNames=["CONSOLE"])
+logger(name="akka", level=INFO)
 logger(name="com.experiments.shopping.cart", level=DEBUG)
+
+root(level=INFO, appenderNames=["CONSOLE"])
