@@ -23,6 +23,7 @@ lazy val `common` =
 lazy val `shopping-cart-command` =
   (project in file("shopping-cart-command"))
     .dependsOn(`common`)
+    .enablePlugins(JavaAppPackaging)
     .settings(
       libraryDependencies ++= Seq(
         akka                       %% "akka-actor"                        % akkaV,
@@ -40,16 +41,18 @@ lazy val `shopping-cart-command` =
       scalafmtOnCompile in ThisBuild := true,
       // Import proto files of the depending project since the command protos reference the depending protos
       PB.includePaths in Compile += file("common/src/main/protobuf"),
-      PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value)
+      PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value),
+      dockerBaseImage := "anapsix/alpine-java:8"
     )
 
 lazy val `shopping-cart-query-vendor-billing` =
   (project in file("shopping-cart-query-vendor-billing"))
     .dependsOn(`common`)
+    .enablePlugins(JavaAppPackaging)
     .settings(
       libraryDependencies ++= Seq(
         akka                       %% "akka-stream"                       % akkaV,
-        akka                       %% "akka-cluster"                      % akkaV,
+        akka                       %% "akka-cluster-sharding"             % akkaV,
         akka                       %% "akka-persistence-query"            % akkaV,
         akka                       %% "akka-slf4j"                        % akkaV,
         akka                       %% "akka-persistence-cassandra"        % "0.80-RC2",
@@ -59,9 +62,7 @@ lazy val `shopping-cart-query-vendor-billing` =
         "org.codehaus.groovy"      % "groovy"                             % "2.4.13"
       ),
       scalafmtOnCompile in ThisBuild := true,
-      // Import proto files of the depending project since the command protos reference the depending protos
-      PB.includePaths in Compile += file("common/src/main/protobuf"),
-      PB.targets in Compile := Seq(scalapb.gen() -> (sourceManaged in Compile).value)
+      dockerBaseImage := "anapsix/alpine-java:8"
     )
 
 // Won't work properly until SBT 1.1.1, use IntelliJ until then
