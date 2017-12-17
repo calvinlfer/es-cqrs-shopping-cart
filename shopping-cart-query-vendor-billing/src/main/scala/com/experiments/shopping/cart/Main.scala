@@ -13,7 +13,7 @@ object Main extends App {
   implicit val system: ActorSystem = ActorSystem("shopping-cart-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   val journal = PersistenceQuery(system).readJournalFor[CassandraReadJournal](CassandraReadJournal.Identifier)
-  println(system.settings.config.getString("akka.remote.netty.tcp.bind-port"))
+
   Cluster(system).registerOnMemberUp {
     println(s"Starting query on ${Cluster(system).selfAddress}")
     journal
