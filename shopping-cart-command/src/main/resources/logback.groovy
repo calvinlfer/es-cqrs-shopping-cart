@@ -9,6 +9,7 @@ appender(name="CONSOLE", clazz=ConsoleAppender) {
 }
 
 logger(name="akka", level=INFO)
+logger(name="org.apache.zookeeper", level=WARN)
 logger(name="com.experiments.shopping.cart", level=DEBUG)
 
 root(level=INFO, appenderNames=["CONSOLE"])
