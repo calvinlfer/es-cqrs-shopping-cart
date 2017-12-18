@@ -66,5 +66,4 @@ lazy val `shopping-cart-query-vendor-billing` =
       dockerBaseImage := "anapsix/alpine-java:8"
     )
 
-// Won't work properly until SBT 1.1.1, use IntelliJ until then
 addCommandAlias("command-side", "shopping-cart-command/runMain com.experiments.shopping.cart.Main")

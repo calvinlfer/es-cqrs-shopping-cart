@@ -18,7 +18,7 @@ object Main extends App {
     println(s"Starting query on ${Cluster(system).selfAddress}")
     journal
       .eventsByTag("items-purchased", Offset.noOffset)
-      .throttle(1, 1.second, 1, ThrottleMode.shaping)
+      .throttle(1, 5.seconds, 1, ThrottleMode.shaping)
       .to(Sink.foreach(println))
       .run()
   }
