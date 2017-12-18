@@ -29,6 +29,7 @@ lazy val `shopping-cart-command` =
         akka                       %% "akka-actor"                        % akkaV,
         akka                       %% "akka-testkit"                      % akkaV % Test,
         akka                       %% "akka-cluster-sharding"             % akkaV,
+        akka                       %% "akka-cluster-tools"                % akkaV,
         akka                       %% "akka-persistence"                  % akkaV,
         akka                       %% "akka-slf4j"                        % akkaV,
         akka                       %% "akka-persistence-cassandra"        % "0.80-RC2",
@@ -54,6 +55,7 @@ lazy val `shopping-cart-query-vendor-billing` =
       libraryDependencies ++= Seq(
         akka                       %% "akka-stream"                       % akkaV,
         akka                       %% "akka-cluster-sharding"             % akkaV,
+        akka                       %% "akka-cluster-tools"                % akkaV,
         akka                       %% "akka-persistence-query"            % akkaV,
         akka                       %% "akka-slf4j"                        % akkaV,
         akka                       %% "akka-persistence-cassandra"        % "0.80-RC2",
