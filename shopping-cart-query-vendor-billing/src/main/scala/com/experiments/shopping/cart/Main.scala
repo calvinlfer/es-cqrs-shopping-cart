@@ -3,11 +3,10 @@ package com.experiments.shopping.cart
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.persistence.cassandra.query.scaladsl.CassandraReadJournal
-import akka.persistence.query.{ Offset, PersistenceQuery }
+import akka.persistence.query.{ EventEnvelope, Offset, PersistenceQuery, TimeBasedUUID }
+import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import akka.stream.{ ActorMaterializer, ThrottleMode }
-
-import scala.concurrent.duration._
+import data.model.events.ItemsPurchased
 
 object Main extends App {
   implicit val system: ActorSystem = ActorSystem("shopping-cart-system")
@@ -18,7 +17,10 @@ object Main extends App {
     println(s"Starting query on ${Cluster(system).selfAddress}")
     journal
       .eventsByTag("items-purchased", Offset.noOffset)
-      .throttle(1, 5.seconds, 1, ThrottleMode.shaping)
+      .map {
+        case EventEnvelope(t @ TimeBasedUUID(uuid), persistenceId, seqNr, i: ItemsPurchased) =>
+          s"offset=(timestamp=${uuid.timestamp()} raw=$t) persistenceId=$persistenceId seqNr=$seqNr event=$i"
+      }
       .to(Sink.foreach(println))
       .run()
   }
