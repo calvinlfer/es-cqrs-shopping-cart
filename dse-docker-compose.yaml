@@ -1,0 +1,30 @@
+version: '3.1'
+
+# Start-up
+# docker-compose -f dse-docker-compose.yaml up
+# Access Datastax-studio via localhost:9042
+# Connect to Datastax-enterprise from Datastax-studio via Docker DNS (datastax-enterprise)
+
+# Clean-up
+# docker-compose -f dse-docker-compose.yaml down --volume
+services:
+  datastax-enterprise:
+    image: store/datastax/dse-server:5.1.5
+    ports:
+      - "9042:9042"   # Native transport
+      - "7199:7199"   # JMX
+      - "9160:9160"   # Thrift clients
+    environment:
+      - DS_LICENSE=accept
+    networks:
+      - dse-modelling
+  datastax-studio:
+    image: datastax/dse-studio:2.0.0
+    ports:
+      - "9091:9091"
+    environment:
+      - DS_LICENSE=accept
+    networks:
+      - dse-modelling
+networks:
+  dse-modelling:
