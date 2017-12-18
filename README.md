@@ -16,4 +16,4 @@ The command side is designed to provide shopping cart functionality to members a
   - The __Query node__ requires the following environment variables to be specified
     - `HOST_IP`: IP of the host machine (e.g. 192.168.1.144 or 127.0.0.1)
     - `HOST_PORT`: Remoting port (e.g. 2552)
-  - `sbt query-side` 
+  - `sbt query-vendor-side` 
