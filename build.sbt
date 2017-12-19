@@ -32,7 +32,7 @@ lazy val `shopping-cart-command` =
         akka                       %% "akka-cluster-tools"                % akkaV,
         akka                       %% "akka-persistence"                  % akkaV,
         akka                       %% "akka-slf4j"                        % akkaV,
-        akka                       %% "akka-persistence-cassandra"        % "0.80-RC2",
+        akka                       %% "akka-persistence-cassandra"        % "0.80-RC3",
         "com.lightbend.akka"       %% "akka-management-cluster-http"      % "0.6",
         "org.typelevel"            %% "cats-core"                         % "1.0.0-RC1",
         "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
@@ -57,12 +57,13 @@ lazy val `shopping-cart-query-vendor-billing` =
         val phantomV = "2.16.4"
 
         Seq(
+          akka                       %% "akka-actor"                        % akkaV,
           akka                       %% "akka-stream"                       % akkaV,
           akka                       %% "akka-cluster-sharding"             % akkaV,
           akka                       %% "akka-cluster-tools"                % akkaV,
           akka                       %% "akka-persistence-query"            % akkaV,
           akka                       %% "akka-slf4j"                        % akkaV,
-          akka                       %% "akka-persistence-cassandra"        % "0.80-RC2",
+          akka                       %% "akka-persistence-cassandra"        % "0.80-RC3",
           "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
           "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.0",
           phantom                    %% "phantom-dsl"                       % phantomV,
