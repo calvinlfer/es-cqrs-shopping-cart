@@ -52,18 +52,26 @@ lazy val `shopping-cart-query-vendor-billing` =
     .dependsOn(`common`)
     .enablePlugins(JavaAppPackaging)
     .settings(
-      libraryDependencies ++= Seq(
-        akka                       %% "akka-stream"                       % akkaV,
-        akka                       %% "akka-cluster-sharding"             % akkaV,
-        akka                       %% "akka-cluster-tools"                % akkaV,
-        akka                       %% "akka-persistence-query"            % akkaV,
-        akka                       %% "akka-slf4j"                        % akkaV,
-        akka                       %% "akka-persistence-cassandra"        % "0.80-RC2",
-        "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
-        "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.0",
-        "ch.qos.logback"           % "logback-classic"                    % "1.2.3",
-        "org.codehaus.groovy"      % "groovy"                             % "2.4.13"
-      ),
+      libraryDependencies ++= {
+        val phantom = "com.outworkers"
+        val phantomV = "2.16.4"
+
+        Seq(
+          akka                       %% "akka-stream"                       % akkaV,
+          akka                       %% "akka-cluster-sharding"             % akkaV,
+          akka                       %% "akka-cluster-tools"                % akkaV,
+          akka                       %% "akka-persistence-query"            % akkaV,
+          akka                       %% "akka-slf4j"                        % akkaV,
+          akka                       %% "akka-persistence-cassandra"        % "0.80-RC2",
+          "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
+          "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.0",
+          phantom                    %% "phantom-dsl"                       % phantomV,
+          phantom                    %% "phantom-jdk8"                      % phantomV,
+          "org.scala-lang"           % "scala-reflect"                      % scalaVersion.value,
+          "ch.qos.logback"           % "logback-classic"                    % "1.2.3",
+          "org.codehaus.groovy"      % "groovy"                             % "2.4.13"
+        )
+      },
       scalafmtOnCompile in ThisBuild := true,
       dockerBaseImage := "anapsix/alpine-java:8"
     )

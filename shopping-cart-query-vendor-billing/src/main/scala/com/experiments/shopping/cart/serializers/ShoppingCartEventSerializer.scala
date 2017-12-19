@@ -8,7 +8,7 @@ class ShoppingCartEventSerializer(system: ExtendedActorSystem) extends Serialize
   val ItemRemovedManifest = "ItemRemoved"
   val ItemQuantityIncreasedManifest = "ItemQuantityIncreased"
   val ItemQuantityDecreasedManifest = "ItemQuantityDecreased"
-  val ItemsPurchasedManifest = "ItemsPurchased"
+  val ItemPurchasedManifest = "ItemPurchased"
 
   override def identifier: Int = 911911
 
@@ -23,7 +23,7 @@ class ShoppingCartEventSerializer(system: ExtendedActorSystem) extends Serialize
       case ItemRemovedManifest => proto.ItemRemoved.parseFrom(bytes)
       case ItemQuantityIncreasedManifest => proto.ItemQuantityIncreased.parseFrom(bytes)
       case ItemQuantityDecreasedManifest => proto.ItemQuantityDecreased.parseFrom(bytes)
-      case ItemsPurchasedManifest => proto.ItemsPurchased.parseFrom(bytes)
+      case ItemPurchasedManifest => proto.ItemPurchased.parseFrom(bytes)
     }
   }
 }
