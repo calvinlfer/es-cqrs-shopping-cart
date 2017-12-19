@@ -34,7 +34,7 @@ lazy val `shopping-cart-command` =
         akka                       %% "akka-slf4j"                        % akkaV,
         akka                       %% "akka-persistence-cassandra"        % "0.80-RC3",
         "com.lightbend.akka"       %% "akka-management-cluster-http"      % "0.6",
-        "org.typelevel"            %% "cats-core"                         % "1.0.0-RC1",
+        "org.typelevel"            %% "cats-core"                         % "1.0.0-RC2",
         "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
         "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.0",
         "ch.qos.logback"           % "logback-classic"                    % "1.2.3",
