@@ -10,13 +10,16 @@ import akka.persistence.cassandra.query.scaladsl.CassandraReadJournal
 import akka.persistence.query.{ Offset, PersistenceQuery, TimeBasedUUID }
 import akka.stream.scaladsl.{ Keep, Sink }
 import akka.stream.{ ActorMaterializer, KillSwitch, KillSwitches }
+import com.datastax.driver.core.utils.UUIDs
+import com.experiments.shopping.cart.Settings
 import com.experiments.shopping.cart.actors.VendorBilling._
-import com.experiments.shopping.cart.repositories.ReadSideRepository
 import com.experiments.shopping.cart.repositories.internal.{ OffsetTrackingInformation, VendorBillingInformation }
+import com.experiments.shopping.cart.repositories.{ AppDatabase, ReadSideRepository }
 import com.experiments.shopping.cart.serializers.Conversions._
+import com.outworkers.phantom.dsl._
 
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContextExecutor, Future }
 
 object VendorBilling {
 
@@ -52,16 +55,38 @@ object VendorBilling {
       )
     )
 
-  def props(readSideRepository: ReadSideRepository): Props = Props(new VendorBilling(readSideRepository))
+  def props: Props = Props(new VendorBilling)
 }
 
-class VendorBilling(readSide: ReadSideRepository) extends Actor with ActorLogging {
+class VendorBilling extends Actor with ActorLogging {
   implicit val mat: ActorMaterializer = ActorMaterializer()
-  implicit val ec: ExecutionContext = context.dispatcher
+  implicit val ec: ExecutionContextExecutor = context.dispatcher
+  val settings = Settings(context.system)
   val journal: CassandraReadJournal =
     PersistenceQuery(context.system).readJournalFor[CassandraReadJournal](CassandraReadJournal.Identifier)
   val HydratorId = "vendor-billing-query"
   val Tag = "item-purchased"
+
+  var appDatabase: AppDatabase = _
+  var readSide: ReadSideRepository = _
+
+  override def preStart(): Unit = {
+    log.info("Creating a new Cassandra Session")
+    appDatabase = AppDatabase(settings)
+    appDatabase.create(30.seconds)
+    readSide = appDatabase.readSide
+  }
+
+  override def postStop(): Unit =
+    if (appDatabase != null) {
+      // ensure we close connection when an actor is restarted (note preRestart invokes postStop)
+      log.info("Closing Cassandra connection")
+      appDatabase.connector.session.getCluster.close()
+      appDatabase = null
+      readSide = null
+    } else {
+      log.warning("AppDatabase (Cassandra Connection) is already null")
+    }
 
   override def receive: Receive = obtainOffset
 
@@ -82,7 +107,13 @@ class VendorBilling(readSide: ReadSideRepository) extends Actor with ActorLoggin
 
       case OffsetEnvelope(Some(OffsetTrackingInformation(_, _, offset))) =>
         cancellable.cancel()
-        log.info("Offset found for Hydrator ID: {} for tag: {} with offset: {}", HydratorId, Tag, offset)
+        log.info(
+          "Offset found for Hydrator ID: {} for tag: {} with offset: {} with timestamp: {}",
+          HydratorId,
+          Tag,
+          offset,
+          UUIDs.unixTimestamp(offset)
+        )
         context.become(queryingJournal(TimeBasedUUID(offset)))
         self ! BeginQuery
 
