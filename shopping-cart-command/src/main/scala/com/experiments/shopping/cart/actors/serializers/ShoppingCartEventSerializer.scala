@@ -11,7 +11,7 @@ class ShoppingCartEventSerializer(system: ExtendedActorSystem) extends Serialize
   val ItemRemovedManifest = "ItemRemoved"
   val ItemQuantityIncreasedManifest = "ItemQuantityIncreased"
   val ItemQuantityDecreasedManifest = "ItemQuantityDecreased"
-  val ItemsPurchasedManifest = "ItemsPurchased"
+  val ItemPurchasedManifest = "ItemPurchased"
 
   override def identifier: Int = 911911
 
@@ -20,7 +20,7 @@ class ShoppingCartEventSerializer(system: ExtendedActorSystem) extends Serialize
     case _: ItemRemoved => ItemRemovedManifest
     case _: ItemQuantityIncreased => ItemQuantityIncreasedManifest
     case _: ItemQuantityDecreased => ItemQuantityDecreasedManifest
-    case _: ItemsPurchased => ItemsPurchasedManifest
+    case _: ItemPurchased => ItemPurchasedManifest
   }
 
   override def toBinary(o: AnyRef): Array[Byte] =
@@ -29,7 +29,7 @@ class ShoppingCartEventSerializer(system: ExtendedActorSystem) extends Serialize
       case i: ItemRemoved => protoItemRemoved(i).toByteArray
       case i: ItemQuantityIncreased => protoItemQuantityIncreased(i).toByteArray
       case i: ItemQuantityDecreased => protoItemQuantityDecreased(i).toByteArray
-      case i: ItemsPurchased => protoItemsPurchased(i).toByteArray
+      case i: ItemPurchased => protoItemPurchased(i).toByteArray
     }
 
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = {
@@ -39,7 +39,7 @@ class ShoppingCartEventSerializer(system: ExtendedActorSystem) extends Serialize
       case ItemRemovedManifest => domainItemRemoved(proto.ItemRemoved.parseFrom(bytes))
       case ItemQuantityIncreasedManifest => domainQuantityIncreased(proto.ItemQuantityIncreased.parseFrom(bytes))
       case ItemQuantityDecreasedManifest => domainQuantityDecreased(proto.ItemQuantityDecreased.parseFrom(bytes))
-      case ItemsPurchasedManifest => domainItemsPurchased(proto.ItemsPurchased.parseFrom(bytes))
+      case ItemPurchasedManifest => domainItemPurchased(proto.ItemPurchased.parseFrom(bytes))
     }
   }
 }

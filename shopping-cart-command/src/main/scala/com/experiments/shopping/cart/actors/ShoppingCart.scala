@@ -22,8 +22,9 @@ object ShoppingCart {
   private final case object Shutdown extends Command
 
   sealed trait Response
-  case class ValidationErrors(errors: Seq[ValidationError]) extends Response
-  case class CartContents(items: List[Item], cartId: CartId) extends Response
+  final case class ValidationErrors(errors: Seq[ValidationError]) extends Response
+  final case class CartContents(items: List[Item], cartId: CartId) extends Response
+  final case class ItemsPurchased(items: List[Item], timePurchased: ZonedDateTime, cartId: CartId) extends Response
 
   sealed trait Event
   final case class ItemAdded(item: Item, timeAdded: ZonedDateTime, cartId: CartId) extends Event with Response
@@ -34,9 +35,7 @@ object ShoppingCart {
   final case class ItemQuantityDecreased(item: Item, amount: Int, time: ZonedDateTime, cartId: CartId)
       extends Event
       with Response
-  final case class ItemsPurchased(items: List[Item], timePurchased: ZonedDateTime, cartId: CartId)
-      extends Event
-      with Response
+  private[actors] final case class ItemPurchased(item: Item, timePurchased: ZonedDateTime, cartId: CartId) extends Event
 
   def props: Props = Props(new ShoppingCart)
 }
@@ -66,7 +65,7 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
       val newItems = quantityAdjusted(item.productId, -amount, cartState.items)
       cartState = CartState(cartId, newItems)
 
-    case ItemsPurchased(_, _, _) =>
+    case ItemPurchased(_, _, _) =>
       val newItems = checkedOut
       cartState = CartState(cartId = CartId.generate(), items = newItems)
   }
@@ -120,10 +119,19 @@ class ShoppingCart extends PersistentActor with ActorLogging with CartValidator 
 
     case Checkout =>
       checkout(cartState.items).fold(sendErrors, _ => {
-        persist(ItemsPurchased(cartState.items.values.toList, now(), cartState.cartId)) { event =>
-          updateState(event)
-          sender() ! event
-          saveSnapshot(CartState.newCart())
+        val timeNow = now()
+        val itemsPurchased: List[ItemPurchased] =
+          cartState.items.values.toList.map(item => ItemPurchased(item, now(), cartState.cartId))
+        val lastItem = itemsPurchased.last
+        val oldCartItems = cartState.items.values.toList
+
+        persistAll(itemsPurchased) { itemPurchased =>
+          updateState(itemPurchased)
+          // send a response on the last item
+          if (itemPurchased == lastItem) {
+            sender() ! ItemsPurchased(oldCartItems, now(), cartState.cartId)
+            saveSnapshot(CartState.newCart())
+          }
         }
       })
 

@@ -40,8 +40,8 @@ message ItemQuantityDecreased {
     Id cartId = 4;
 }
 
-message ItemsPurchased {
+message ItemPurchased {
     Id cartId = 1;
     string timePurchased = 2; // ZonedDateTime
-    repeated Item items = 3;
+    Item item = 3;
 }

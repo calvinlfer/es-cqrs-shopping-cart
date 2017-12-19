@@ -15,7 +15,7 @@ class ShoppingCartTaggingEventAdapter(system: ExtendedActorSystem) extends Write
   val ItemAdded = "item-added"
   val ItemQuantityIncreased = "item-quantity-increased"
   val ItemQuantityDecreased = "item-quantity-decreased"
-  val ItemsPurchased = "items-purchased"
+  val ItemPurchased = "item-purchased"
   val ItemRemoved = "item-removed"
   val GeneralCart = "cart-event"
 
@@ -38,8 +38,8 @@ class ShoppingCartTaggingEventAdapter(system: ExtendedActorSystem) extends Write
     case i: ItemQuantityDecreased =>
       Tagged(i, Set(ItemQuantityDecreased, GeneralCart))
 
-    case i: ItemsPurchased =>
-      Tagged(i, Set(ItemsPurchased, GeneralCart))
+    case i: ItemPurchased =>
+      Tagged(i, Set(ItemPurchased, GeneralCart))
 
     case otherEvent =>
       log.warning(s"Message: $otherEvent is being persisted to the event journal is not tagged")

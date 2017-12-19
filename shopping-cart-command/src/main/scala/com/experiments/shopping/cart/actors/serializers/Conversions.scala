@@ -55,11 +55,11 @@ object Conversions {
       cartId = Some(protoId(quantityDecreased.cartId.id))
     )
 
-  def protoItemsPurchased(itemsPurchased: ItemsPurchased): proto.ItemsPurchased =
-    proto.ItemsPurchased(
-      cartId = Some(protoId(itemsPurchased.cartId.id)),
-      timePurchased = protoTime(itemsPurchased.timePurchased),
-      items = itemsPurchased.items.map(protoItem)
+  def protoItemPurchased(itemPurchased: ItemPurchased): proto.ItemPurchased =
+    proto.ItemPurchased(
+      cartId = Some(protoId(itemPurchased.cartId.id)),
+      timePurchased = protoTime(itemPurchased.timePurchased),
+      item = Some(protoItem(itemPurchased.item))
     )
 
   // Data -> Domain
@@ -115,12 +115,8 @@ object Conversions {
     )
   }
 
-  def domainItemsPurchased(itemsPurchased: proto.ItemsPurchased): ItemsPurchased = {
-    val proto.ItemsPurchased(Some(protoCartId), timePurchased, protoItems) = itemsPurchased
-    ItemsPurchased(
-      items = protoItems.map(domainItem).toList,
-      timePurchased = domainTime(timePurchased),
-      cartId = cartId(protoCartId)
-    )
+  def domainItemPurchased(itemPurchased: proto.ItemPurchased): ItemPurchased = {
+    val proto.ItemPurchased(Some(protoCartId), timePurchased, Some(protoItem)) = itemPurchased
+    ItemPurchased(item = domainItem(protoItem), timePurchased = domainTime(timePurchased), cartId = cartId(protoCartId))
   }
 }
