@@ -2,6 +2,7 @@ package com.experiments.shopping.cart
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
+import akka.pattern.BackoffSupervisor
 import com.experiments.shopping.cart.actors.VendorBilling
 import com.experiments.shopping.cart.repositories.{ AppDatabase, ReadSideRepository }
 import com.outworkers.phantom.dsl._
@@ -17,7 +18,14 @@ object Main extends App {
   appDatabase.create(30.seconds)
 
   Cluster(system).registerOnMemberUp {
-    system.log.debug(s"Starting query on {}", Cluster(system).selfAddress)
-    system.actorOf(VendorBilling.props(readSide), "vendor-billing-query-actor")
+    val supervisorSettings = settings.querySupervision
+    val supervisor = BackoffSupervisor.props(
+      childProps = VendorBilling.props(readSide),
+      childName = "vendor-billing-query-actor",
+      minBackoff = supervisorSettings.minBackOff,
+      maxBackoff = supervisorSettings.maxBackOff,
+      randomFactor = supervisorSettings.noise // 10% noise to vary intervals (mitigate the thundering herd problem)
+    )
+    system.actorOf(supervisor, "vendor-billing-query-supervisor")
   }
 }

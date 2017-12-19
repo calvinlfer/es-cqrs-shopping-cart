@@ -3,8 +3,15 @@ package com.experiments.shopping.cart
 import akka.actor.ActorSystem
 import com.typesafe.config.Config
 
+import scala.concurrent.duration.{ FiniteDuration, MILLISECONDS }
+
 class Settings(config: Config) {
   def this(system: ActorSystem) = this(system.settings.config)
+
+  private def getDuration(key: String): FiniteDuration = {
+    val duration = config.getDuration(key)
+    FiniteDuration(duration.toMillis, MILLISECONDS)
+  }
 
   object cassandra {
     val host: String = config.getString("cassandra.host")
@@ -21,6 +28,12 @@ class Settings(config: Config) {
       if (pass.nonEmpty) Some(pass) else None
     }
     val autoInitKeyspace: Boolean = config.getBoolean("cassandra.initialize-keyspace")
+  }
+
+  object querySupervision {
+    val minBackOff: FiniteDuration = getDuration("app.query-supervision.min-backoff-duration")
+    val maxBackOff: FiniteDuration = getDuration("app.query-supervision.max-backoff-duration")
+    val noise: Double = config.getDouble("app.query-supervision.noise")
   }
 }
 
