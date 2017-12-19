@@ -91,6 +91,12 @@ class VendorBilling extends Actor with ActorLogging {
 
   override def receive: Receive = obtainOffset
 
+  def beginQuery(offset: Offset): Unit = {
+    log.info("Transitioning to queryingJournal")
+    context.become(queryingJournal(offset))
+    self ! BeginQuery
+  }
+
   def obtainOffset: Receive = {
     val cancellable =
       context.system.scheduler.schedule(initialDelay = 5.seconds, interval = 10.seconds)(self ! ObtainOffset)
@@ -103,8 +109,7 @@ class VendorBilling extends Actor with ActorLogging {
       case OffsetEnvelope(None) =>
         cancellable.cancel()
         log.info("No offset found for Hydrator ID: {} for tag: {}", HydratorId, Tag)
-        context.become(queryingJournal(Offset.noOffset))
-        self ! BeginQuery
+        beginQuery(Offset.noOffset)
 
       case OffsetEnvelope(Some(OffsetTrackingInformation(_, _, offset))) =>
         cancellable.cancel()
@@ -115,8 +120,7 @@ class VendorBilling extends Actor with ActorLogging {
           offset,
           UUIDs.unixTimestamp(offset)
         )
-        context.become(queryingJournal(TimeBasedUUID(offset)))
-        self ! BeginQuery
+        beginQuery(TimeBasedUUID(offset))
 
       case Status.Failure(exception) =>
         cancellable.cancel()
@@ -130,6 +134,7 @@ class VendorBilling extends Actor with ActorLogging {
 
   def queryingJournal(journalOffset: Offset, optKillSwitch: Option[KillSwitch] = None): Receive = {
     case BeginQuery =>
+      log.info("Starting eventsByTag query: eventsByTag({}, {})", Tag, journalOffset)
       val (killSwitch, done) = journal
         .eventsByTag(Tag, journalOffset)
         .mapAsync(1) { ee =>
