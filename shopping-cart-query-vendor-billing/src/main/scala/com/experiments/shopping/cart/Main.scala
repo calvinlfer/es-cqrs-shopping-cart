@@ -3,54 +3,91 @@ package com.experiments.shopping.cart
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
 import akka.persistence.cassandra.query.scaladsl.CassandraReadJournal
-import akka.persistence.query.{ EventEnvelope, Offset, PersistenceQuery, TimeBasedUUID }
+import akka.persistence.query._
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
+import com.experiments.shopping.cart.repositories.internal.{ OffsetTrackingInformation, VendorBillingInformation }
 import com.experiments.shopping.cart.repositories.{ AppDatabase, ReadSideRepository }
+import com.experiments.shopping.cart.serializers.Conversions._
 import com.outworkers.phantom.dsl._
 import com.typesafe.config.ConfigFactory
 import data.model.events.ItemPurchased
+import data.model.{ events => proto }
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import scala.util.{ Failure, Success }
 
 object Main extends App {
   implicit val system: ActorSystem = ActorSystem("shopping-cart-system")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val ec: ExecutionContext = system.dispatcher
-
   val settings = Settings(ConfigFactory.load())
+  val journal = PersistenceQuery(system).readJournalFor[CassandraReadJournal](CassandraReadJournal.Identifier)
   val appDatabase = AppDatabase(settings)
   val readSide: ReadSideRepository = appDatabase.readSide
+  val hydratorId = "vendor-billing-query"
+  val tag = "item-purchased"
 
   appDatabase.create(30.seconds)
-  //  val result: Future[(VendorBillingInformation, OffsetTrackingInformation)] =
-  //    for {
-  //      Some(billing) <- readSide.find(UUID.fromString("398a9f5f-f7fb-4ac6-b948-ca175fb385ab"), 2017, 12)
-  //      ans <- readSide.update(
-  //        VendorBillingInformation(
-  //          UUID.fromString("398a9f5f-f7fb-4ac6-b948-ca175fb385ab"),
-  //          2017,
-  //          12,
-  //          billing.balance + 100.10
-  //        ),
-  //        OffsetTrackingInformation("vendor-processor", "items-purchased", UUIDs.timeBased())
-  //      )
-  //    } yield ans
-  //  val blocking = Await.result(result, 30.seconds)
-  //  println(blocking)
+  val offset = readSide.find(hydratorId, tag)
 
-  val journal = PersistenceQuery(system).readJournalFor[CassandraReadJournal](CassandraReadJournal.Identifier)
+  def updateReadSide(existing: Option[VendorBillingInformation],
+                     vendorId: UUID,
+                     year: Int,
+                     month: Int,
+                     balanceDelta: BigDecimal,
+                     offsetInformation: OffsetTrackingInformation) =
+    existing.fold(
+      ifEmpty = readSide.update(VendorBillingInformation(vendorId, year, month, balanceDelta), offsetInformation)
+    )(
+      existingBillingInfo =>
+        readSide.update(
+          VendorBillingInformation(vendorId, year, month, balanceDelta + existingBillingInfo.balance),
+          offsetInformation
+      )
+    )
 
   Cluster(system).registerOnMemberUp {
-    println(s"Starting query on ${Cluster(system).selfAddress}")
-    journal
-      .eventsByTag("item-purchased", Offset.noOffset)
-      .map {
-        case EventEnvelope(t @ TimeBasedUUID(uuid), persistenceId, seqNr, i: ItemPurchased) =>
-          s"offset=(timestamp=${uuid.timestamp()} raw=$t) persistenceId=$persistenceId seqNr=$seqNr event=$i"
-      }
-      .to(Sink.foreach(println))
-      .run()
+    system.log.debug(s"Starting query on {}", Cluster(system).selfAddress)
+    offset.onComplete {
+      case Success(optionOffset) =>
+        val eventsByTagQuery = optionOffset
+          .map { info =>
+            system.log.info("Resuming query: {}", info)
+            journal.eventsByTag(info.tag, TimeBasedUUID(info.offset))
+          }
+          .getOrElse(journal.eventsByTag(tag, Offset.noOffset))
+
+        eventsByTagQuery
+          .mapAsync(1) {
+            case EventEnvelope(
+                TimeBasedUUID(offsetUUID),
+                persistenceId,
+                seqNr,
+                ItemPurchased(
+                  Some(protoCartId),
+                  protoTimePurchased,
+                  Some(proto.Item(Some(_), Some(protoVendorId), _, price, quantity))
+                )
+                ) =>
+              val time = domainTime(protoTimePurchased)
+              val itemVendor = domainUuid(protoVendorId)
+              val totalPrice = price * quantity
+              val year = time.getYear
+              val month = time.getMonthValue
+              val offsetInformation = OffsetTrackingInformation(hydratorId, tag, offsetUUID)
+
+              for {
+                result <- readSide.find(itemVendor, year, month)
+                _ <- updateReadSide(result, itemVendor, year, month, totalPrice, offsetInformation)
+              } yield ()
+          }
+          .to(Sink.foreach(println))
+          .run()
+
+      case Failure(exception) =>
+        system.log.error(exception, "Failed to contact offset tracking table")
+    }
   }
 }
