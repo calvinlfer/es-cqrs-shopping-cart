@@ -2,8 +2,10 @@ package com.experiments.shopping.cart
 
 import akka.actor.ActorSystem
 import akka.cluster.Cluster
+import akka.cluster.singleton.{ ClusterSingletonManager, ClusterSingletonManagerSettings }
 import akka.pattern.BackoffSupervisor
 import com.experiments.shopping.cart.actors.VendorBilling
+import com.experiments.shopping.cart.actors.VendorBilling.StopQuery
 
 object Main extends App {
   implicit val system: ActorSystem = ActorSystem("shopping-cart-system")
@@ -18,6 +20,12 @@ object Main extends App {
       maxBackoff = supervisorSettings.maxBackOff,
       randomFactor = supervisorSettings.noise // 10% noise to vary intervals (mitigate the thundering herd problem)
     )
-    system.actorOf(supervisor, "vendor-billing-query-supervisor")
+    system.actorOf(
+      ClusterSingletonManager.props(
+        singletonProps = supervisor,
+        terminationMessage = StopQuery,
+        settings = ClusterSingletonManagerSettings(system)
+      )
+    )
   }
 }

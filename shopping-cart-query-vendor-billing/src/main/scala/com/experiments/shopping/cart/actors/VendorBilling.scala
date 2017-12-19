@@ -25,6 +25,7 @@ object VendorBilling {
 
   sealed trait Message
   final case object ObtainOffset extends Message
+  final case object StopQuery extends Message
   private final case class OffsetEnvelope(optInfo: Option[OffsetTrackingInformation]) extends Message
   private final case object BeginQuery extends Message
 
@@ -121,6 +122,9 @@ class VendorBilling extends Actor with ActorLogging {
         cancellable.cancel()
         log.error(exception, "Failed to obtain an offset from the Offset Tracking Table, failing fast")
         throw exception
+
+      case StopQuery =>
+        context.stop(self)
     }
   }
 
@@ -150,5 +154,10 @@ class VendorBilling extends Actor with ActorLogging {
     case Done =>
       log.error("An infinite stream (eventsByTag) should not complete, failing")
       throw InfiniteStreamCompletedException
+
+    case StopQuery =>
+      log.warning("Received StopQuery, stopping query stream and actor")
+      optKillSwitch.foreach(_.shutdown())
+      context.stop(self)
   }
 }
