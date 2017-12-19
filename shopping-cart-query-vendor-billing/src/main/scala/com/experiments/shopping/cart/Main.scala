@@ -18,7 +18,7 @@ object Main extends App {
       childName = "vendor-billing-query-actor",
       minBackoff = supervisorSettings.minBackOff,
       maxBackoff = supervisorSettings.maxBackOff,
-      randomFactor = supervisorSettings.noise // 10% noise to vary intervals (mitigate the thundering herd problem)
+      randomFactor = supervisorSettings.noise // noise to vary intervals (mitigate the thundering herd problem)
     )
     system.actorOf(
       ClusterSingletonManager.props(
