@@ -6,13 +6,12 @@ import java.util.UUID
 
 import com.experiments.shopping.cart.actors.ShoppingCart._
 import com.experiments.shopping.cart.domain.{ CartId, Item, ProductId, VendorId }
-import com.google.protobuf.ByteString
 
 object Conversions {
   import data.model.{ events => proto }
   // Domain -> Data
   private def protoId(underlyingId: UUID): proto.Id =
-    proto.Id(ByteString.copyFrom(underlyingId.toString.getBytes()))
+    proto.Id(underlyingId.toString)
 
   private def protoTime(zdt: ZonedDateTime): String = zdt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
@@ -63,7 +62,7 @@ object Conversions {
     )
 
   // Data -> Domain
-  private def uuid(id: proto.Id): UUID = UUID.nameUUIDFromBytes(id.value.toByteArray)
+  private def uuid(id: proto.Id): UUID = UUID.fromString(id.value)
 
   private def productId(id: proto.Id): ProductId = ProductId(uuid(id))
 

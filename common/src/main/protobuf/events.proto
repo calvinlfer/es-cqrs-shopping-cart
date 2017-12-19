@@ -3,7 +3,7 @@ syntax = "proto3";
 package data.model;
 
 message Id {
-    bytes value = 1;
+    string value = 1;
 }
 
 message Item {
