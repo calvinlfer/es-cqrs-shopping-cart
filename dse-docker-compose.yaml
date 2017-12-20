@@ -2,7 +2,7 @@ version: '3.1'
 
 # Start-up
 # docker-compose -f dse-docker-compose.yaml up
-# Access Datastax-studio via localhost:9042
+# Access Datastax-studio via localhost:9091
 # Connect to Datastax-enterprise from Datastax-studio via Docker DNS (datastax-enterprise)
 
 # Clean-up
