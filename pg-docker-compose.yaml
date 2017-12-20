@@ -1,0 +1,19 @@
+version: '3.1'
+
+# Start-up
+# docker-compose -f pg-docker-compose.yaml up
+
+# Clean-up
+# docker-compose -f pg-docker-compose.yaml down --volume
+services:
+  postgres:
+    image: postgres:10.1
+    environment:
+      - "POSTGRES_USER=docker"
+      - "POSTGRES_PASSWORD=docker"
+    ports:
+      - "5432:5432"
+    networks:
+      - shopping_cart
+networks:
+  shopping_cart:

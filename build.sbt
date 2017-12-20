@@ -77,6 +77,37 @@ lazy val `shopping-cart-query-vendor-billing` =
       dockerBaseImage := "anapsix/alpine-java:8"
     )
 
+lazy val `shopping-cart-query-vendor-billing-jdbc` =
+  (project in file("shopping-cart-query-vendor-billing-jdbc"))
+    .dependsOn(`common`)
+    .enablePlugins(JavaAppPackaging)
+    .settings(
+      libraryDependencies ++= {
+        val slick = "com.typesafe.slick"
+        val slickV = "3.2.1"
+
+        Seq(
+          akka                       %% "akka-actor"                        % akkaV,
+          akka                       %% "akka-stream"                       % akkaV,
+          akka                       %% "akka-cluster-sharding"             % akkaV,
+          akka                       %% "akka-cluster-tools"                % akkaV,
+          akka                       %% "akka-persistence-query"            % akkaV,
+          akka                       %% "akka-slf4j"                        % akkaV,
+          slick                      %% "slick"                             % slickV,
+          slick                      %% "slick-hikaricp"                    % slickV,
+          akka                       %% "akka-persistence-cassandra"        % "0.80-RC3",
+          "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
+          "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.0",
+          "org.postgresql"           % "postgresql"                         % "42.1.4",
+          "org.scala-lang"           % "scala-reflect"                      % scalaVersion.value,
+          "ch.qos.logback"           % "logback-classic"                    % "1.2.3",
+          "org.codehaus.groovy"      % "groovy"                             % "2.4.13"
+        )
+      },
+      scalafmtOnCompile in ThisBuild := true,
+      dockerBaseImage := "anapsix/alpine-java:8"
+    )
+
 lazy val `shopping-cart-query-popular-items` =
   (project in file("shopping-cart-query-popular-items"))
     .dependsOn(`common`)
