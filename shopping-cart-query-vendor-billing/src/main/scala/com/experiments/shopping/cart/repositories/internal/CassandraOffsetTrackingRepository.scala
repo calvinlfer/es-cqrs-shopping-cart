@@ -8,6 +8,18 @@ import scala.concurrent.Future
 abstract class CassandraOffsetTrackingRepository
     extends Table[CassandraOffsetTrackingRepository, OffsetTrackingInformation]
     with OffsetTrackingRepository {
+
+  /**
+    * CREATE TABLE offset_tracking (
+    *   hydratorId text,
+    *   tag text,
+    *   offset timeuuid,
+    *   PRIMARY KEY ((hydratorId, tag))
+    * )
+    *
+    * WARNING: ensure that sequence in which the mappings below are defined match those in the case class if you
+    * want to use the store functionality (LabelledGeneric based) offered by Phantom's Table
+    */
   object hydratorId extends StringColumn with PartitionKey
   object tag extends StringColumn with PartitionKey
   object offset extends TimeUUIDColumn

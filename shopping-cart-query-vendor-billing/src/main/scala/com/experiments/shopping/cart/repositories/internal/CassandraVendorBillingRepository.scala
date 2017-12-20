@@ -8,6 +8,19 @@ import scala.concurrent.Future
 abstract class CassandraVendorBillingRepository
     extends Table[CassandraVendorBillingRepository, VendorBillingInformation]
     with VendorBillingRepository {
+
+  /**
+    * CREATE TABLE balance_by_vendor (
+    *   vendorId uuid,
+    *   year int,
+    *   month int,
+    *   balance decimal,
+    *   PRIMARY KEY ((vendorId, year), month)
+    * ) WITH CLUSTERING ORDER BY (month DESC)
+    *
+    * WARNING: ensure that sequence in which the mappings below are defined match those in the case class if you
+    * want to use the store functionality (LabelledGeneric based) offered by Phantom's Table
+    */
   object vendorId extends UUIDColumn with PartitionKey
   object year extends IntColumn with PartitionKey
   object month extends IntColumn with ClusteringOrder with Descending
