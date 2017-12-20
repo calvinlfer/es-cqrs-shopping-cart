@@ -108,4 +108,5 @@ lazy val `shopping-cart-query-popular-items` =
     )
 
 addCommandAlias("command-side", "shopping-cart-command/runMain com.experiments.shopping.cart.Main")
-addCommandAlias("query-vendor-side", "shopping-cart-query-vendor-billing/runMain com.experiments.shopping.cart.Main")
+addCommandAlias("query-vendor-billing", "shopping-cart-query-vendor-billing/runMain com.experiments.shopping.cart.Main")
+addCommandAlias("query-popular-items", "shopping-cart-query-popular-items/runMain com.experiments.shopping.cart.Main")
