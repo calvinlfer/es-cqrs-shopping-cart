@@ -12,6 +12,10 @@ The command side is designed to provide shopping cart functionality to members a
     - `HOST_PORT`: Remoting port (e.g. 2552)
     - `MANAGEMENT_PORT`: HTTP port that exposes cluster management (e.g. 19999)
 
-  - The __Query node__ requires the following environment variables to be specified
+  - The __Query node for Vendor Billing__ requires the following environment variables to be specified
+    - `HOST_IP`: IP of the host machine (e.g. 192.168.1.144 or 127.0.0.1)
+    - `HOST_PORT`: Remoting port (e.g. 2552)
+    
+  - The __Query node for Popular Items__ requires the following environment variables to be specified
     - `HOST_IP`: IP of the host machine (e.g. 192.168.1.144 or 127.0.0.1)
     - `HOST_PORT`: Remoting port (e.g. 2552)
