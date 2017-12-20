@@ -10,6 +10,14 @@ abstract class CassandraReadSideRepository(offsetTracking: CassandraOffsetTracki
                                            billing: CassandraVendorBillingRepository)
     extends ReadSideRepository
     with RootConnector {
+
+  /**
+    * Atomically update the read-side table (balance_by_vendor) and the offset tracking table (offset_tracking) to
+    * ensure exactly-once delivery semantics
+    * @param info Vendor Billing Information
+    * @param offset Offset Tracking Information
+    * @return
+    */
   override def update(
     info: VendorBillingInformation,
     offset: OffsetTrackingInformation
