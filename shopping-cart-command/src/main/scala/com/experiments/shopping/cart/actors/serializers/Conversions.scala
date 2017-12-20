@@ -5,10 +5,11 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 import com.experiments.shopping.cart.actors.ShoppingCart._
-import com.experiments.shopping.cart.domain.{ CartId, Item, ProductId, VendorId }
+import com.experiments.shopping.cart.domain._
 
 object Conversions {
   import data.model.{ events => proto }
+  import data.model.command.internal.{ snapshots => protoSnapshot }
   // Domain -> Data
   private def protoId(underlyingId: UUID): proto.Id =
     proto.Id(underlyingId.toString)
@@ -60,6 +61,11 @@ object Conversions {
       timePurchased = protoTime(itemPurchased.timePurchased),
       item = Some(protoItem(itemPurchased.item))
     )
+
+  def protoCartState(cartState: CartState): protoSnapshot.CartState =
+    protoSnapshot.CartState(cartId = Some(protoId(cartState.cartId.id)), items = cartState.items.map {
+      case (productId, item) => (productId.id.toString, protoItem(item))
+    })
 
   // Data -> Domain
   private def uuid(id: proto.Id): UUID = UUID.fromString(id.value)
@@ -117,5 +123,12 @@ object Conversions {
   def domainItemPurchased(itemPurchased: proto.ItemPurchased): ItemPurchased = {
     val proto.ItemPurchased(Some(protoCartId), timePurchased, Some(protoItem)) = itemPurchased
     ItemPurchased(item = domainItem(protoItem), timePurchased = domainTime(timePurchased), cartId = cartId(protoCartId))
+  }
+
+  def domainCartState(cartState: protoSnapshot.CartState): CartState = {
+    val protoSnapshot.CartState(Some(protoCartId), protoItems) = cartState
+    CartState(cartId = cartId(protoCartId), items = protoItems.map {
+      case (productIdStr, protoItem) => (ProductId(UUID.fromString(productIdStr)), domainItem(protoItem))
+    })
   }
 }
