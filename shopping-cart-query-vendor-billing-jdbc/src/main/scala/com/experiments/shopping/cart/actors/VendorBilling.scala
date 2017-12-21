@@ -18,9 +18,11 @@ import com.experiments.shopping.cart.repositories.internal._
 import com.experiments.shopping.cart.serializers.Conversions._
 import slick.jdbc.PostgresProfile.api._
 import slick.jdbc.PostgresProfile.backend.DatabaseDef
+import slick.jdbc.meta.MTable
+import slick.relational.RelationalProfile
 
 import scala.concurrent.duration._
-import scala.concurrent.{ ExecutionContextExecutor, Future }
+import scala.concurrent.{ Await, ExecutionContext, ExecutionContextExecutor, Future }
 
 object VendorBilling {
 
@@ -32,6 +34,24 @@ object VendorBilling {
 
   case class EventData(timePurchased: ZonedDateTime, vendorId: UUID, totalPrice: BigDecimal, year: Int, month: Int)
   case object InfiniteStreamCompletedException extends Exception("Infinite Stream has completed")
+
+  def createTables(queryOffset: TableQuery[OffsetTrackingTable],
+                   queryVendor: TableQuery[VendorBillingTable])(db: DatabaseDef): Future[Unit] = {
+    // use the ExecutionContext offered by Slick to create tables and to map over results
+    implicit val ec: ExecutionContext = db.executor.executionContext
+    def createTableIfNotExists[A <: RelationalProfile#Table[_]](tableQuery: TableQuery[A]): DBIO[Unit] =
+      for {
+        createTable <- MTable.getTables(tableQuery.baseTableRow.tableName).map(_.isEmpty)
+        _ <- if (createTable) tableQuery.schema.create
+        else DBIO.successful(s"Already created table: ${tableQuery.baseTableRow.tableName}")
+      } yield ()
+
+    // Run the check-and-create operations for each table transactionally, don't bother making everything transactional
+    // NOTE: I could not List(q1, q2).map(createTableIfNotExists).map(_.transactionally) due to type system errors
+    val bothTableCreation =
+      DBIO.seq(createTableIfNotExists(queryOffset).transactionally, createTableIfNotExists(queryVendor).transactionally)
+    db.run(bothTableCreation)
+  }
 
   def updateReadSide(
     readSide: ReadSideRepository,
@@ -67,7 +87,7 @@ class VendorBilling extends Actor with ActorLogging {
   var readSide: ReadSideRepository = _
 
   override def preStart(): Unit = {
-    log.info("Creating a new Cassandra Session")
+    log.info("Creating a new PostgreSQL connection")
     database = Database.forConfig("db")
     val vendorBillingQuery: TableQuery[VendorBillingTable] = TableQuery(
       VendorBillingTable(
@@ -81,6 +101,12 @@ class VendorBilling extends Actor with ActorLogging {
         tableSchema = settings.database.schemaName
       )
     )
+
+    log.info("Creating tables if they don't exist...")
+    // WARNING: Blocking to create tables here
+    Await.result(createTables(offsetTrackingQuery, vendorBillingQuery)(database), 30.seconds)
+    log.info("Table creation complete")
+
     readSide = new ReadSideRepository(offsetTrackingQuery, vendorBillingQuery)(ec, database)
   }
 
