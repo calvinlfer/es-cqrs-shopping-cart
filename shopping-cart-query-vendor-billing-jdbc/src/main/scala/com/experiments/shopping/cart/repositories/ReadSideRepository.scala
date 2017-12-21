@@ -25,7 +25,7 @@ class ReadSideRepository(
       } yield ()
 
     // Run the check-and-create operations for each table transactionally, don't bother making everything transactional
-    // NOTE: I could not List(q1, q2).map(createTableIfNotExists).map(_.transactionally) due to type system errors
+    // NOTE: I could not List(q1, q2).map(createTableIfNotExists).map(_.transactionally) due to IntelliJ complaining
     val bothTableCreation =
       DBIO.seq(createTableIfNotExists(queryOffset).transactionally, createTableIfNotExists(queryVendor).transactionally)
     db.run(bothTableCreation)
