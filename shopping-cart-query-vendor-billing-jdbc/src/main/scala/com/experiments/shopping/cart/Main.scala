@@ -15,7 +15,7 @@ object Main extends App {
     val supervisorSettings = settings.querySupervision
     val supervisor = BackoffSupervisor.props(
       childProps = VendorBilling.props,
-      childName = "vendor-billing-query-actor",
+      childName = "vendor-billing-jdbc-query-actor",
       minBackoff = supervisorSettings.minBackOff,
       maxBackoff = supervisorSettings.maxBackOff,
       randomFactor = supervisorSettings.noise // noise to vary intervals (mitigate the thundering herd problem)
