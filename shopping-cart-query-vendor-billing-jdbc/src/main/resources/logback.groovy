@@ -10,8 +10,11 @@ appender(name="CONSOLE", clazz=ConsoleAppender) {
 logger(name="akka", level=DEBUG)
 logger(name="org.apache.zookeeper", level=WARN)
 logger(name="akka.persistence.cassandra.query.EventsByTagStage", level=INFO)
-logger(name="slick.jdbc.JdbcBackend.statement", level=INFO)
-//logger(name="slick.jdbc.JdbcBackend.benchmark", level=INFO)
-//logger(name="slick.jdbc.StatementInvoker.result", level=INFO)
+
+// http://slick.lightbend.com/doc/3.2.1/config.html#logging
+logger(name="slick.basic.BasicBackend.action", level=DEBUG)
+logger(name="slick.jdbc.JdbcBackend.statement", level=DEBUG)
+logger(name="slick.jdbc.JdbcBackend.benchmark", level=DEBUG)
+//logger(name="slick.jdbc.JdbcBackend.parameter", level=DEBUG)
 
 root(level=INFO, appenderNames=["CONSOLE"])

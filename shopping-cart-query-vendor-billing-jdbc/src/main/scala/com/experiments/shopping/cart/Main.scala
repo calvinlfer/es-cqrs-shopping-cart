@@ -1,44 +1,31 @@
 package com.experiments.shopping.cart
 
-import java.util.UUID
-
-import com.experiments.shopping.cart.repositories.internal.{
-  OffsetTrackingTable,
-  VendorBillingInformationRow,
-  VendorBillingTable
-}
-import slick.jdbc.PostgresProfile.api._
-import com.typesafe.config.ConfigFactory
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import akka.actor.ActorSystem
+import akka.cluster.Cluster
+import akka.cluster.singleton.{ ClusterSingletonManager, ClusterSingletonManagerSettings }
+import akka.pattern.BackoffSupervisor
+import com.experiments.shopping.cart.actors.VendorBilling
+import com.experiments.shopping.cart.actors.VendorBilling.StopQuery
 
 object Main extends App {
-  val config = ConfigFactory.load()
-  val database = Database.forConfig("db")
-  println(s"Connecting to ${config.getString("db.url")}")
-  val vendorBillingQuery: TableQuery[VendorBillingTable] = TableQuery(
-    VendorBillingTable(tableName = "vendor_billing", tableSchema = "shopping_cart")
-  )
-  val offsetTrackingQuery: TableQuery[OffsetTrackingTable] = TableQuery(
-    OffsetTrackingTable(tableName = "offset_tracking", tableSchema = "shopping_cart")
-  )
+  implicit val system: ActorSystem = ActorSystem("shopping-cart-system")
+  val settings = Settings(system)
 
-//  println(vendorBillingQuery.schema.create.statements.mkString)
-//  println {
-//    Await.result(database.run(vendorBillingQuery.schema.create), 30.seconds)
-//  }
-
-//  println {
-//    Await.result(database.run(offsetTrackingQuery.schema.create), 30.seconds)
-//  }
-
-  val query = vendorBillingQuery.insertOrUpdate(
-    VendorBillingInformationRow(UUID.fromString("79fcc2f3-b8cc-4b24-8428-63aa7bbed1d0"), 2017, 12, 199.18)
-  ) andThen
-    (vendorBillingQuery += VendorBillingInformationRow(UUID.randomUUID(), 2017, 12, 199.18))
-
-  println {
-    Await.result(database.run(query.transactionally), 10.seconds)
+  Cluster(system).registerOnMemberUp {
+    val supervisorSettings = settings.querySupervision
+    val supervisor = BackoffSupervisor.props(
+      childProps = VendorBilling.props,
+      childName = "vendor-billing-query-actor",
+      minBackoff = supervisorSettings.minBackOff,
+      maxBackoff = supervisorSettings.maxBackOff,
+      randomFactor = supervisorSettings.noise // noise to vary intervals (mitigate the thundering herd problem)
+    )
+    system.actorOf(
+      ClusterSingletonManager.props(
+        singletonProps = supervisor,
+        terminationMessage = StopQuery,
+        settings = ClusterSingletonManagerSettings(system)
+      )
+    )
   }
 }
