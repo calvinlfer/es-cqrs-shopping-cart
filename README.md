@@ -5,6 +5,8 @@ The command side is designed to provide shopping cart functionality to members a
 
 ## Running the application ##
 - Start up dependencies (Cassandra and ZooKeeper) with Docker Compose using `docker-compose up`
+- If you want to run any SQL based Query nodes, also start up PostgreSQL using 
+`docker-compose -f pg-docker-compose.yaml up`
 
 - Start application
   - __Command nodes__ require the following environment variables to be specified 
@@ -19,3 +21,5 @@ The command side is designed to provide shopping cart functionality to members a
   - The __Query node for Popular Items__ requires the following environment variables to be specified
     - `HOST_IP`: IP of the host machine (e.g. 192.168.1.144 or 127.0.0.1)
     - `HOST_PORT`: Remoting port (e.g. 2552)
+
+__Note:__ Make sure `HOST_PORT`s do not conflict between any nodes in the cluster
