@@ -77,7 +77,7 @@ class PopularItems extends Actor with ActorLogging {
     if (appDatabase != null) {
       // ensure we close connection when an actor is restarted (note preRestart invokes postStop)
       log.info("Closing Cassandra connection")
-      appDatabase.connector.provider.cluster.close()
+      appDatabase.shutdown()
       log.info("Cassandra connection closed")
       appDatabase = null
       readSide = null

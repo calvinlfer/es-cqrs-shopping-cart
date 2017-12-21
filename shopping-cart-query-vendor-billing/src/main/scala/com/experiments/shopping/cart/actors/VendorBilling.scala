@@ -82,7 +82,8 @@ class VendorBilling extends Actor with ActorLogging {
     if (appDatabase != null) {
       // ensure we close connection when an actor is restarted (note preRestart invokes postStop)
       log.info("Closing Cassandra connection")
-      appDatabase.connector.session.getCluster.close()
+      appDatabase.shutdown()
+      log.info("Cassandra connection closed")
       appDatabase = null
       readSide = null
     } else {
