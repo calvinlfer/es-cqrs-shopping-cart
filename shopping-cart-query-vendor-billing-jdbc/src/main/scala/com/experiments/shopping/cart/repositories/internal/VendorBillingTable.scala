@@ -13,11 +13,24 @@ object VendorBillingTable {
 
 final class VendorBillingTable(tableName: String, tableSchema: String, tableTag: Tag)
     extends Table[VendorBillingInformationRow](tableTag, Some(tableSchema), tableName) {
-  // usually you would define this as
-  // vendorId = column[UUID]("vendor_id", O.Length(36, varying = false), O.PrimaryKey)
-  // year = column[Int]("year", O.PrimaryKey)
-  // month = column[Int]("month", O.PrimaryKey)
-  // but this is a Postgres limitation so we rely on primaryKey
+
+  /**
+    * CREATE TABLE vendor_billing
+    * (
+    *   vendor_id UUID           NOT NULL,
+    *   year      INTEGER        NOT NULL,
+    *   month     INTEGER        NOT NULL,
+    *   balance   NUMERIC(21, 2) NOT NULL,
+    *   CONSTRAINT "vendorId_year_month_pk"
+    *   PRIMARY KEY (vendor_id, year, month)
+    * );
+    *
+    * usually you would define this as
+    * vendorId = column[UUID]("vendor_id", O.Length(36, varying = false), O.PrimaryKey)
+    * year = column[Int]("year", O.PrimaryKey)
+    * month = column[Int]("month", O.PrimaryKey)
+    * but this is a Postgres limitation so we rely on primaryKey
+    */
   val vendorId = column[UUID]("vendor_id", O.Length(36, varying = false))
   val year = column[Int]("year")
   val month = column[Int]("month")

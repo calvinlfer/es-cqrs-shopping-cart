@@ -29,6 +29,10 @@ object Main extends App {
 //    Await.result(database.run(vendorBillingQuery.schema.create), 30.seconds)
 //  }
 
+//  println {
+//    Await.result(database.run(offsetTrackingQuery.schema.create), 30.seconds)
+//  }
+
   val query = vendorBillingQuery.insertOrUpdate(
     VendorBillingInformationRow(UUID.fromString("79fcc2f3-b8cc-4b24-8428-63aa7bbed1d0"), 2017, 12, 199.18)
   ) andThen
