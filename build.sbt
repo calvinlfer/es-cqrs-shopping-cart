@@ -138,6 +138,39 @@ lazy val `shopping-cart-query-popular-items` =
       dockerBaseImage := "anapsix/alpine-java:8"
     )
 
+lazy val `shopping-cart-query-items-purchased-events` =
+  (project in file("shopping-cart-query-item-purchased-events"))
+    .dependsOn(`common`)
+    .enablePlugins(JavaAppPackaging)
+    .settings(libraryDependencies ++= {
+      val phantom = "com.outworkers"
+      val phantomV = "2.16.4"
+      val circe = "io.circe"
+      val circeV = "0.9.0-M3"
+
+      Seq(
+        akka                       %% "akka-actor"                        % akkaV,
+        akka                       %% "akka-stream"                       % akkaV,
+        akka                       %% "akka-cluster-sharding"             % akkaV,
+        akka                       %% "akka-cluster-tools"                % akkaV,
+        akka                       %% "akka-persistence-query"            % akkaV,
+        akka                       %% "akka-slf4j"                        % akkaV,
+        "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
+        "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.0",
+        akka                       %% "akka-persistence-cassandra"        % "0.80-RC3",
+        akka                       %% "akka-stream-kafka"                 % "0.18",
+        circe                      %% "circe-core"                        % circeV,
+        circe                      %% "circe-generic"                     % circeV,
+        circe                      %% "circe-parser"                      % circeV,
+        circe                      %% "circe-java8"                       % circeV,
+        phantom                    %% "phantom-dsl"                       % phantomV,
+        phantom                    %% "phantom-jdk8"                      % phantomV,
+        "org.scala-lang"           % "scala-reflect"                      % scalaVersion.value,
+        "ch.qos.logback"           % "logback-classic"                    % "1.2.3",
+        "org.codehaus.groovy"      % "groovy"                             % "2.4.13"
+      )
+    })
+
 addCommandAlias("command-side", "shopping-cart-command/runMain com.experiments.shopping.cart.Main")
 addCommandAlias("query-vendor-billing", "shopping-cart-query-vendor-billing/runMain com.experiments.shopping.cart.Main")
 addCommandAlias("query-popular-items", "shopping-cart-query-popular-items/runMain com.experiments.shopping.cart.Main")
