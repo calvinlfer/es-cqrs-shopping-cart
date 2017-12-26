@@ -33,6 +33,13 @@ class Settings(config: Config) {
   object kafka {
     val uris: String = config.getString("kafka.uris")
     val topic: String = config.getString("kafka.topic")
+    val partitionSize: Int = config.getInt("kafka.partition-size")
+  }
+
+  object querySupervision {
+    val minBackOff: FiniteDuration = getDuration("app.query-supervision.min-backoff-duration")
+    val maxBackOff: FiniteDuration = getDuration("app.query-supervision.max-backoff-duration")
+    val noise: Double = config.getDouble("app.query-supervision.noise")
   }
 }
 

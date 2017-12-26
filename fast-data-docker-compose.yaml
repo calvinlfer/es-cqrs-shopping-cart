@@ -10,6 +10,7 @@ version: '3.1'
 #
 # https://hub.docker.com/r/landoop/fast-data-dev/
 # Make sure to docker pull landoop/fast-data-dev:latest before running docker-compose
+# Allocate at-least 4GB of memory to run this container
 
 # Start-up
 # docker-compose -f fast-data-docker-compose.yaml up
@@ -27,7 +28,10 @@ services:
       - "2182:2181"   # Zookeeper
       - "3030:3030"   # Landoop Development Environment UI
     environment:
-      - "ADV_HOST=127.0.0.1"
+      - "ADV_HOST=127.0.0.1"  # Allow services in container to be remotely accessible (so the host can access it)
+      - "SAMPLEDATA=0"        # Do not create example topics
+      - "FORWARDLOGS=0"       # Disable the 5 file source connectors that automatically bring logs into Kafka topics
+      - "RUNTESTS=0"          # Don't run Coyote integration tests on container startup (enable if debugging)
     networks:
       - fast-data
 
