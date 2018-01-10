@@ -20,6 +20,11 @@ class Settings(config: Config) {
   object cart {
     val inactivityDuration: FiniteDuration = getDuration("app.cart.inactivity-duration")
   }
+
+  object server {
+    val host: String = config.getString("app.server.host")
+    val port: Int = config.getInt("app.server.port")
+  }
 }
 
 object Settings {
