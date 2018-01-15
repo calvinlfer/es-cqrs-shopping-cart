@@ -45,7 +45,7 @@ lazy val `shopping-cart-command` =
           circe                      %% "circe-parser"                      % circeV,
           circe                      %% "circe-java8"                       % circeV,
           "com.lightbend.akka"       %% "akka-management-cluster-http"      % "0.6",
-          "org.typelevel"            %% "cats-core"                         % "1.0.0-RC2",
+          "org.typelevel"            %% "cats-core"                         % "1.0.1",
           "de.heikoseeberger"        %% "constructr"                        % "0.18.1",
           "com.lightbend.constructr" %% "constructr-coordination-zookeeper" % "0.4.0",
           "ch.qos.logback"           % "logback-classic"                    % "1.2.3",
