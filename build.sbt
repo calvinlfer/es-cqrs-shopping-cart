@@ -8,7 +8,7 @@ scalaVersion in ThisBuild := "2.12.4"
 lazy val `shopping-cart` = (project in file(".")).aggregate(`common`, `shopping-cart-command`)
 
 val akka = "com.typesafe.akka"
-val akkaV = "2.5.8"
+val akkaV = "2.5.10"
 
 // The common project contains the protocol buffers responsible for communication between the command and
 // query-processor sides and also contains reusable code, it also generates the source for its protos
@@ -66,7 +66,7 @@ lazy val `shopping-cart-query-vendor-billing` =
     .settings(
       libraryDependencies ++= {
         val phantom = "com.outworkers"
-        val phantomV = "2.16.4"
+        val phantomV = "2.20.2"
 
         Seq(
           akka                       %% "akka-actor"                        % akkaV,
@@ -127,7 +127,7 @@ lazy val `shopping-cart-query-popular-items` =
     .settings(
       libraryDependencies ++= {
         val phantom = "com.outworkers"
-        val phantomV = "2.16.4"
+        val phantomV = "2.20.2"
 
         Seq(
           akka                       %% "akka-actor"                        % akkaV,
@@ -156,7 +156,7 @@ lazy val `shopping-cart-query-items-purchased-events` =
     .enablePlugins(JavaAppPackaging)
     .settings(libraryDependencies ++= {
       val phantom = "com.outworkers"
-      val phantomV = "2.16.4"
+      val phantomV = "2.20.2"
       val circe = "io.circe"
       val circeV = "0.9.0"
 
