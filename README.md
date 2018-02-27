@@ -168,7 +168,7 @@ CREATE TABLE balance_by_vendor (
 
 #### `vendor-billing-jdbc` ####
 Performs the same function as `vendor-billing` except it writes to PostgreSQL instead of Cassandra.
-```postgresql
+```sql
 CREATE TABLE vendor_billing
 (
   vendor_id UUID           NOT NULL,
