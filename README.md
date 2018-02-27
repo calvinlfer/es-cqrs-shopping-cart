@@ -185,3 +185,7 @@ This module is responsible for pulling all item-purchased events from the event 
 topic for consumption by further downstream services. The updates to Kafka have an at-least-once delivery guarantee so
 duplicates can occur because we cannot guarantee transactions can happen as we use Cassandra to track journal offsets
 and we publish data to Kafka separately.
+
+## Architecture ###
+
+_WIP_
