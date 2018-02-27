@@ -93,7 +93,8 @@ Remove an item to the existing shopping cart you have selected:
 remove orange
 ```
 
-Adjust the quantity of an existing item (you can use negative numbers to decrease) in your shopping cart you have selected:
+Adjust the quantity of an existing item (you can use negative numbers to decrease) in your shopping cart you have 
+selected:
 
 ```bash
 adjust orange 10
@@ -116,3 +117,71 @@ Provide information about available commands:
 ```bash
 help
 ```
+
+### Query nodes ###
+There are a variety of query components. The purpose of each query component is to demonstrate how to populate the 
+database of a read-side view but not actually provide the UI functionality of the view. In a sense Query nodes are more
+like hydrators as they provide data for the view side UI to consume and display in a way they see fit. There are three
+queries that consume from the event journal directly and write to the read-side view in an exactly-once manner providing
+transactional guarantees (`popular-items`, `vendor-billing`, `vendor-billing-jdbc`). `popular-items` and `vendor-billing`
+consume from the journal and hydrate Cassandra tables whilst `vendor-billing-jdbc` hydrates a PostgreSQL table. Last 
+but not least is the `item-purchased-events` hydrator which is responsible consuming purchased items from the journal 
+and publishing those events to Kafka in an at-least-once fashion. The modules that consume data from the event journal 
+and publish data to the read-side database directly make use of a offset tracking table where they record their progress
+and update the data in a transactional manner. All query/hydrator components make use of this offset tracking table
+but the `item-purchased-events` module cannot perform transactional writes since it updates two different systems 
+(Cassandra for offset-tracking and Kafka for event publishing). Each query module is run as a Cluster Singleton and 
+joins the same cluster as the command nodes in order to make use of some optimizations under the hood. You can run
+multiple query nodes (of the same type) at the same time but they will operate in a active-passive manner and hand-off 
+will occur when the active query node goes down.
+
+We'll now examine each query/hydrator module:
+
+#### `popular-items` ####
+This module is responsible for tallying up the most popular items that were purchased for each day. It pulls events
+from the event journal via Akka Persistence query and writes them to a Cassandra table.
+```cql
+CREATE TABLE item_quantity_by_day (
+  vendorid uuid,
+  productid uuid,
+  year int,
+  month int,
+  day int,
+  quantity int,
+  name string
+  PRIMARY KEY((vendorid, productid, year, month), day)
+) WITH CLUSTERING ORDER BY (day ASC);
+```
+
+#### `vendor-billing` ####
+This module is responsible for tallying up the most popular items that were purchased for each day. It pulls events
+from the event journal via Akka Persistence query and writes them to a Cassandra table.
+```cql
+CREATE TABLE balance_by_vendor (
+  vendorId uuid,
+  year int,
+  month int,
+  balance decimal,
+  PRIMARY KEY ((vendorId, year), month)
+) WITH CLUSTERING ORDER BY (month DESC)
+```
+
+#### `vendor-billing-jdbc` ####
+Performs the same function as `vendor-billing` except it writes to PostgreSQL instead of Cassandra.
+```postgresql
+CREATE TABLE vendor_billing
+(
+  vendor_id UUID           NOT NULL,
+  year      INTEGER        NOT NULL,
+  month     INTEGER        NOT NULL,
+  balance   NUMERIC(21, 2) NOT NULL,
+  CONSTRAINT "vendorId_year_month_pk"
+  PRIMARY KEY (vendor_id, year, month)
+);
+```
+
+#### `item-purchased-events` ####
+This module is responsible for pulling all item-purchased events from the event journal and pushing them to a Kafka 
+topic for consumption by further downstream services. The updates to Kafka have an at-least-once delivery guarantee so
+duplicates can occur because we cannot guarantee transactions can happen as we use Cassandra to track journal offsets
+and we publish data to Kafka separately.
